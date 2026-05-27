@@ -36,6 +36,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         CONFIG.AI_PROVIDER: anthropic
         CONFIG.MODEL: claude-sonnet-4-5
+        CONFIG.CUSTOM_MODEL_MAX_TOKENS: "200000"
         pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
         pr_reviewer.inline_code_comments: "true"
         github_action_config.auto_review: "true"
