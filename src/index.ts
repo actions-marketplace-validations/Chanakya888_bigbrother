@@ -1,10 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import * as core from '@actions/core';
 import { buildPrompt } from './prompt';
+import { config } from './config';
 
 async function run(): Promise<void> {
-  const prBody = process.env.PR_BODY?.trim() ?? '';
-  const apiKey = process.env.ANTHROPIC_API_KEY ?? '';
+  const { prBody, anthropicApiKey: apiKey } = config;
 
   if (!prBody) {
     console.log('No PR description found. Proceeding without context.');

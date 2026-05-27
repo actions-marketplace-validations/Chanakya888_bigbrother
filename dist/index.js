@@ -31359,6 +31359,25 @@ module.exports.implForWrapper = function (wrapper) {
 
 /***/ }),
 
+/***/ 2973:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.config = void 0;
+exports.config = {
+    // Your Anthropic API key — get one at https://console.anthropic.com
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
+    // Auto-provided by GitHub Actions — no setup needed
+    githubToken: process.env.GITHUB_TOKEN ?? '',
+    // Pulled from the PR event automatically — no setup needed
+    prBody: process.env.PR_BODY?.trim() ?? '',
+};
+
+
+/***/ }),
+
 /***/ 9407:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -31404,9 +31423,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const sdk_1 = __importDefault(__nccwpck_require__(121));
 const core = __importStar(__nccwpck_require__(7484));
 const prompt_1 = __nccwpck_require__(705);
+const config_1 = __nccwpck_require__(2973);
 async function run() {
-    const prBody = process.env.PR_BODY?.trim() ?? '';
-    const apiKey = process.env.ANTHROPIC_API_KEY ?? '';
+    const { prBody, anthropicApiKey: apiKey } = config_1.config;
     if (!prBody) {
         console.log('No PR description found. Proceeding without context.');
         core.setOutput('brief', '');
