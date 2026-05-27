@@ -38,6 +38,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         ANTHROPIC.KEY: ${{ inputs.anthropic-api-key }}
         config.model: anthropic/claude-sonnet-4-5
+        config.custom_model_max_tokens: "200000"
         config.fallback_models: "[]"
         pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
         pr_reviewer.inline_code_comments: "true"
