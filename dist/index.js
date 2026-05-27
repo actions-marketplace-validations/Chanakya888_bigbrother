@@ -31428,6 +31428,22 @@ const core = __importStar(__nccwpck_require__(7484));
 const prompt_1 = __nccwpck_require__(705);
 const config_1 = __nccwpck_require__(2973);
 const tests_1 = __nccwpck_require__(9898);
+async function postComment(token, owner, repo, prNumber, brief) {
+    const body = `👁️ **Big Brother's read**\n\n${brief}\n\n---\n*Detailed review incoming from PR-Agent.*`;
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ body }),
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to post comment: ${response.status} ${response.statusText}`);
+    }
+    console.log('[bigbrother] Comment posted to PR successfully.');
+}
 async function run() {
     const { prBody, anthropicApiKey: apiKey, githubToken, prNumber, repoOwner, repoName } = config_1.config;
     console.log(`[bigbrother] Running on PR #${prNumber} in ${repoOwner}/${repoName}`);
@@ -31476,6 +31492,12 @@ async function run() {
     }
     console.log('[bigbrother] Brief generated successfully:');
     console.log(block.text);
+    try {
+        await postComment(githubToken, repoOwner, repoName, prNumber, block.text);
+    }
+    catch (err) {
+        console.warn('[bigbrother] Could not post comment (non-fatal):', err.message);
+    }
     core.setOutput('brief', block.text);
     console.log('[bigbrother] Output "brief" set. PR-Agent will use this as extra instructions.');
 }

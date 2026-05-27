@@ -4,6 +4,29 @@ import { buildPrompt } from './prompt';
 import { config } from './config';
 import { extractTestContext } from './tests';
 
+async function postComment(token: string, owner: string, repo: string, prNumber: number, brief: string): Promise<void> {
+  const body = `👁️ **Big Brother's read**\n\n${brief}\n\n---\n*Detailed review incoming from PR-Agent.*`;
+
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ body }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to post comment: ${response.status} ${response.statusText}`);
+  }
+
+  console.log('[bigbrother] Comment posted to PR successfully.');
+}
+
 async function run(): Promise<void> {
   const { prBody, anthropicApiKey: apiKey, githubToken, prNumber, repoOwner, repoName } = config;
 
@@ -61,6 +84,13 @@ async function run(): Promise<void> {
 
   console.log('[bigbrother] Brief generated successfully:');
   console.log(block.text);
+
+  try {
+    await postComment(githubToken, repoOwner, repoName, prNumber, block.text);
+  } catch (err) {
+    console.warn('[bigbrother] Could not post comment (non-fatal):', (err as Error).message);
+  }
+
   core.setOutput('brief', block.text);
   console.log('[bigbrother] Output "brief" set. PR-Agent will use this as extra instructions.');
 }
