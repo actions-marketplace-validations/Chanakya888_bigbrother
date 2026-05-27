@@ -37,6 +37,10 @@ jobs:
 
 The more context you give, the smarter the review. Tell it what you're building, what the expected behavior is, and any edge cases you're aware of. No description means no context means a generic review.
 
+## Built on top of
+
+Big Brother uses [PR-Agent](https://github.com/The-PR-Agent/pr-agent) under the hood for the actual code review. We just handle the context layer on top of it.
+
 ## How it works
 
 1. PR is opened or updated
