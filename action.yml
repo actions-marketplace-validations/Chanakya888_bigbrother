@@ -1,0 +1,36 @@
+name: 'Big Brother'
+description: 'Reads your PR description, summarizes it with Claude, and passes context to PR-Agent for smarter code reviews'
+author: 'Chanakya888'
+
+branding:
+  icon: 'eye'
+  color: 'purple'
+
+inputs:
+  github-token:
+    description: 'GitHub token'
+    required: true
+  anthropic-api-key:
+    description: 'Anthropic API key'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Summarize PR with Claude
+      id: summarize
+      shell: bash
+      env:
+        PR_BODY: ${{ github.event.pull_request.body }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+      run: node ${{ github.action_path }}/dist/index.js
+
+    - name: Run PR-Agent with context
+      uses: The-PR-Agent/pr-agent@main
+      env:
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        CONFIG.AI_PROVIDER: anthropic
+        CONFIG.MODEL: claude-sonnet-4-5
+        pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
+        github_action_config.auto_review: "true"
