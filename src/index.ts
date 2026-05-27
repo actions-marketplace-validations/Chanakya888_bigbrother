@@ -4,9 +4,7 @@ import { buildPrompt } from './prompt';
 import { config } from './config';
 import { extractTestContext } from './tests';
 
-async function postComment(token: string, owner: string, repo: string, prNumber: number, brief: string): Promise<void> {
-  const body = `👁️ **Big Brother's read**\n\n${brief}\n\n---\n*Detailed review incoming from PR-Agent.*`;
-
+async function postComment(token: string, owner: string, repo: string, prNumber: number, body: string): Promise<void> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/issues/${prNumber}/comments`,
     {
@@ -41,7 +39,15 @@ async function run(): Promise<void> {
   }
 
   if (!prBody) {
-    console.log('[bigbrother] No PR description found. Skipping summarization, PR-Agent will review without extra context.');
+    console.log('[bigbrother] No PR description found. Posting nudge comment and skipping summarization.');
+    try {
+      await postComment(
+        githubToken, repoOwner, repoName, prNumber,
+        `👁️ **Big Brother's Review**\n\nNo PR description was provided, so Big Brother doesn't have much context here. PR-Agent will perform a basic review without extra guidance.\n\n> Add a description to help Big Brother give you sharper, more targeted feedback.`
+      );
+    } catch (err) {
+      console.warn('[bigbrother] Could not post nudge comment (non-fatal):', (err as Error).message);
+    }
     core.setOutput('brief', '');
     return;
   }
@@ -86,7 +92,10 @@ async function run(): Promise<void> {
   console.log(block.text);
 
   try {
-    await postComment(githubToken, repoOwner, repoName, prNumber, block.text);
+    await postComment(
+      githubToken, repoOwner, repoName, prNumber,
+      `👁️ **Big Brother's Review**\n\n${block.text}\n\n---\n*Detailed review incoming from PR-Agent.*`
+    );
   } catch (err) {
     console.warn('[bigbrother] Could not post comment (non-fatal):', (err as Error).message);
   }

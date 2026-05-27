@@ -7,55 +7,44 @@ function buildTestSection(testContexts: TestContext[]): string {
   if (testContexts.length === 0) return '';
 
   const lines = testContexts.flatMap(ctx => [
-    `File: ${ctx.file}`,
-    ...ctx.tests.map(t => `  - ${t}`),
+    `  File: ${ctx.file}`,
+    ...ctx.tests.map(t => `    - ${t}`),
   ]);
 
   return `
-**Tests found in this PR**
-The developer wrote the following tests. Use these to understand what behaviour
-they intended to cover and what edge cases they were thinking about:
+<tests>
+The developer wrote the following tests. Use these to understand intended behaviour and what edge cases they were thinking about:
 ${lines.join('\n')}
+</tests>
 `;
 }
 
 export const buildPrompt = (prBody: string, testContexts: TestContext[] = []): string => `
-You are a senior software engineer preparing a briefing for a code reviewer.
+You are a senior software engineer writing a pre-review brief for a code reviewer.
 
-You have been given a PR description. Your job is NOT just to summarise it.
-Your job is to use your engineering knowledge to figure out what this type of feature
-typically involves, what must be checked, and what developers commonly get wrong.
-
-PR Description:
----
+<pr_description>
 ${prBody}
----
+</pr_description>
 ${buildTestSection(testContexts)}
-Produce a structured review brief with the following sections:
+Write a structured review brief using the exact markdown headers below.
+Each section must be tight and specific to this PR — no padding, no generic advice.
+Do NOT write things like "write tests", "handle errors", "follow best practices", or anything that applies to every PR.
+If a section has nothing specific to say, write a single dash: -
 
-**What's being built**
-1-2 sentences. What is the intent of this change?
+## What's being built
+One sentence. State the intent and user-facing impact, not the technology used.
 
-**What this feature must get right**
-Based on your knowledge of this type of feature — not just what the description says —
-what are the technical requirements that must be correct for this to work properly?
-Think about state management, data flow, API contracts, persistence, concurrency, etc.
-as they apply to this specific feature type.
+## Must get right
+3 bullets max. The technical requirements that MUST be correct for this feature to work — think state management, data flow, API contracts, persistence, concurrency. Specific to this feature only.
 
-**Common pitfalls for this type of change**
-What do developers typically get wrong when building something like this?
-What subtle bugs, race conditions, or oversights are common in this domain?
-Be specific to the feature — not generic advice.
+## Common pitfalls
+3 bullets max. What developers typically get wrong when building exactly this kind of feature. Name the specific bug or oversight, not the category.
 
-**Edge cases to probe**
-List the specific edge cases a reviewer should hunt for in the code.
-Think about empty states, boundary values, failure modes, and unexpected inputs
-that are typical for this kind of feature.
-${testContexts.length > 0 ? `Also cross-check: are there obvious edge cases missing from the tests written?` : ''}
+## Edge cases to probe
+3–5 bullets. Specific inputs, states, or failure modes a reviewer should hunt for in the code.${testContexts.length > 0 ? ' Flag any obvious edge cases missing from the tests.' : ''}
 
-**Red flags to watch for**
-What patterns or shortcuts in the code should immediately raise concern?
+## Red flags
+2–3 bullets. Patterns or shortcuts that should immediately raise concern in a PR like this.
 
-Keep the entire brief under 300 words. Be sharp and specific — not generic.
-A reviewer should be able to read this and know exactly what to look for.
+Total brief: under 250 words. Write like a sharp senior engineer handing off to a peer, not a checklist generator.
 `.trim();
