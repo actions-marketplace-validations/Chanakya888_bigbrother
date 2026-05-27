@@ -22,7 +22,11 @@ runs:
       shell: bash
       env:
         PR_BODY: ${{ github.event.pull_request.body }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ github.event.repository.name }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
       run: node ${{ github.action_path }}/dist/index.js
 
     - name: Run PR-Agent with context
@@ -34,6 +38,5 @@ runs:
         CONFIG.MODEL: claude-sonnet-4-5
         pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
         pr_reviewer.inline_code_comments: "true"
-        pr_reviewer.require_tests_review: "true"
         github_action_config.auto_review: "true"
         github_action_config.auto_improve: "true"

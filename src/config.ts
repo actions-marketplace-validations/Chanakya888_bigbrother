@@ -7,4 +7,7 @@ export const config = {
 
   // Pulled from the PR event automatically — no setup needed
   prBody: process.env.PR_BODY?.trim() ?? '',
+  prNumber: parseInt(process.env.PR_NUMBER ?? '0', 10),
+  repoOwner: process.env.REPO_OWNER ?? '',
+  repoName: process.env.REPO_NAME ?? '',
 } as const;

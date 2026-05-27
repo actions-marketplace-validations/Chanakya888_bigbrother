@@ -2,14 +2,26 @@ import Anthropic from '@anthropic-ai/sdk';
 import * as core from '@actions/core';
 import { buildPrompt } from './prompt';
 import { config } from './config';
+import { extractTestContext } from './tests';
 
 async function run(): Promise<void> {
-  const { prBody, anthropicApiKey: apiKey } = config;
+  const { prBody, anthropicApiKey: apiKey, githubToken, prNumber, repoOwner, repoName } = config;
 
   if (!prBody) {
     console.log('No PR description found. Proceeding without context.');
     core.setOutput('brief', '');
     return;
+  }
+
+  // Extract test definitions from the PR diff if any exist
+  let testContexts: Awaited<ReturnType<typeof extractTestContext>> = [];
+  try {
+    testContexts = await extractTestContext(githubToken, repoOwner, repoName, prNumber);
+    if (testContexts.length > 0) {
+      console.log(`Found tests in ${testContexts.length} file(s), adding to context.`);
+    }
+  } catch (err) {
+    console.warn('Could not extract test context:', (err as Error).message);
   }
 
   const client = new Anthropic({ apiKey });
@@ -20,7 +32,7 @@ async function run(): Promise<void> {
     messages: [
       {
         role: 'user',
-        content: buildPrompt(prBody),
+        content: buildPrompt(prBody, testContexts),
       },
     ],
   });

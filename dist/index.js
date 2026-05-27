@@ -31373,6 +31373,9 @@ exports.config = {
     githubToken: process.env.GITHUB_TOKEN ?? '',
     // Pulled from the PR event automatically — no setup needed
     prBody: process.env.PR_BODY?.trim() ?? '',
+    prNumber: parseInt(process.env.PR_NUMBER ?? '0', 10),
+    repoOwner: process.env.REPO_OWNER ?? '',
+    repoName: process.env.REPO_NAME ?? '',
 };
 
 
@@ -31424,12 +31427,24 @@ const sdk_1 = __importDefault(__nccwpck_require__(121));
 const core = __importStar(__nccwpck_require__(7484));
 const prompt_1 = __nccwpck_require__(705);
 const config_1 = __nccwpck_require__(2973);
+const tests_1 = __nccwpck_require__(9898);
 async function run() {
-    const { prBody, anthropicApiKey: apiKey } = config_1.config;
+    const { prBody, anthropicApiKey: apiKey, githubToken, prNumber, repoOwner, repoName } = config_1.config;
     if (!prBody) {
         console.log('No PR description found. Proceeding without context.');
         core.setOutput('brief', '');
         return;
+    }
+    // Extract test definitions from the PR diff if any exist
+    let testContexts = [];
+    try {
+        testContexts = await (0, tests_1.extractTestContext)(githubToken, repoOwner, repoName, prNumber);
+        if (testContexts.length > 0) {
+            console.log(`Found tests in ${testContexts.length} file(s), adding to context.`);
+        }
+    }
+    catch (err) {
+        console.warn('Could not extract test context:', err.message);
     }
     const client = new sdk_1.default({ apiKey });
     const response = await client.messages.create({
@@ -31438,7 +31453,7 @@ async function run() {
         messages: [
             {
                 role: 'user',
-                content: (0, prompt_1.buildPrompt)(prBody),
+                content: (0, prompt_1.buildPrompt)(prBody, testContexts),
             },
         ],
     });
@@ -31465,7 +31480,21 @@ run().catch((err) => {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildPrompt = void 0;
-const buildPrompt = (prBody) => `
+function buildTestSection(testContexts) {
+    if (testContexts.length === 0)
+        return '';
+    const lines = testContexts.flatMap(ctx => [
+        `File: ${ctx.file}`,
+        ...ctx.tests.map(t => `  - ${t}`),
+    ]);
+    return `
+**Tests found in this PR**
+The developer wrote the following tests. Use these to understand what behaviour
+they intended to cover and what edge cases they were thinking about:
+${lines.join('\n')}
+`;
+}
+const buildPrompt = (prBody, testContexts = []) => `
 You are a senior software engineer preparing a briefing for a code reviewer.
 
 You have been given a PR description. Your job is NOT just to summarise it.
@@ -31476,7 +31505,7 @@ PR Description:
 ---
 ${prBody}
 ---
-
+${buildTestSection(testContexts)}
 Produce a structured review brief with the following sections:
 
 **What's being built**
@@ -31497,6 +31526,7 @@ Be specific to the feature — not generic advice.
 List the specific edge cases a reviewer should hunt for in the code.
 Think about empty states, boundary values, failure modes, and unexpected inputs
 that are typical for this kind of feature.
+${testContexts.length > 0 ? `Also cross-check: are there obvious edge cases missing from the tests written?` : ''}
 
 **Red flags to watch for**
 What patterns or shortcuts in the code should immediately raise concern?
@@ -31505,6 +31535,58 @@ Keep the entire brief under 300 words. Be sharp and specific — not generic.
 A reviewer should be able to read this and know exactly what to look for.
 `.trim();
 exports.buildPrompt = buildPrompt;
+
+
+/***/ }),
+
+/***/ 9898:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.extractTestContext = extractTestContext;
+function extractTestNames(lines) {
+    const tests = [];
+    const pattern = /(?:describe|it|test)\s*\(\s*['"`](.+?)['"`]/g;
+    for (const line of lines) {
+        let match;
+        while ((match = pattern.exec(line)) !== null) {
+            tests.push(match[1]);
+        }
+    }
+    return [...new Set(tests)];
+}
+async function extractTestContext(token, owner, repo, prNumber) {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}/files`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github.v3+json',
+        },
+    });
+    if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+    }
+    const files = (await response.json());
+    const testFiles = files.filter(f => /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(f.filename) ||
+        f.filename.includes('__tests__'));
+    if (testFiles.length === 0)
+        return [];
+    const contexts = [];
+    for (const file of testFiles) {
+        if (!file.patch)
+            continue;
+        const addedLines = file.patch
+            .split('\n')
+            .filter(line => line.startsWith('+'))
+            .map(line => line.slice(1));
+        const tests = extractTestNames(addedLines);
+        if (tests.length > 0) {
+            contexts.push({ file: file.filename, tests });
+        }
+    }
+    return contexts;
+}
 
 
 /***/ }),
