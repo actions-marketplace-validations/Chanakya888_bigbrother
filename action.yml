@@ -1,4 +1,4 @@
-name: 'Reviewer Big Brother'
+name: 'Big Brother Sees'
 description: 'Reads your PR description, summarizes it with Claude, and passes context to PR-Agent for smarter code reviews'
 author: 'Chanakya888'
 
