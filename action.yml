@@ -34,4 +34,6 @@ runs:
         CONFIG.MODEL: claude-sonnet-4-5
         pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
         pr_reviewer.inline_code_comments: "true"
+        pr_reviewer.require_tests_review: "true"
         github_action_config.auto_review: "true"
+        github_action_config.auto_improve: "true"
