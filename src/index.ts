@@ -1,20 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import * as core from '@actions/core';
-
-const PROMPT = (prBody: string): string => `
-You are preparing a brief for a code reviewer.
-Read this PR description and extract a concise review brief.
-
-PR Description:
-${prBody}
-
-Output:
-1. What is being built or changed (1-2 sentences)
-2. Expected behavior or requirements
-3. Edge cases or gotchas mentioned
-
-Keep it under 150 words. Be direct and specific.
-`.trim();
+import { buildPrompt } from './prompt';
 
 async function run(): Promise<void> {
   const prBody = process.env.PR_BODY?.trim() ?? '';
@@ -30,11 +16,11 @@ async function run(): Promise<void> {
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-5',
-    max_tokens: 300,
+    max_tokens: 600,
     messages: [
       {
         role: 'user',
-        content: PROMPT(prBody),
+        content: buildPrompt(prBody),
       },
     ],
   });

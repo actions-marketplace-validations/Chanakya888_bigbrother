@@ -31403,20 +31403,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const sdk_1 = __importDefault(__nccwpck_require__(121));
 const core = __importStar(__nccwpck_require__(7484));
-const PROMPT = (prBody) => `
-You are preparing a brief for a code reviewer.
-Read this PR description and extract a concise review brief.
-
-PR Description:
-${prBody}
-
-Output:
-1. What is being built or changed (1-2 sentences)
-2. Expected behavior or requirements
-3. Edge cases or gotchas mentioned
-
-Keep it under 150 words. Be direct and specific.
-`.trim();
+const prompt_1 = __nccwpck_require__(705);
 async function run() {
     const prBody = process.env.PR_BODY?.trim() ?? '';
     const apiKey = process.env.ANTHROPIC_API_KEY ?? '';
@@ -31428,11 +31415,11 @@ async function run() {
     const client = new sdk_1.default({ apiKey });
     const response = await client.messages.create({
         model: 'claude-sonnet-4-5',
-        max_tokens: 300,
+        max_tokens: 600,
         messages: [
             {
                 role: 'user',
-                content: PROMPT(prBody),
+                content: (0, prompt_1.buildPrompt)(prBody),
             },
         ],
     });
@@ -31448,6 +31435,57 @@ run().catch((err) => {
     console.error('Context extraction failed:', err.message);
     core.setOutput('brief', '');
 });
+
+
+/***/ }),
+
+/***/ 705:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.buildPrompt = void 0;
+const buildPrompt = (prBody) => `
+You are a senior software engineer preparing a briefing for a code reviewer.
+
+You have been given a PR description. Your job is NOT just to summarise it.
+Your job is to use your engineering knowledge to figure out what this type of feature
+typically involves, what must be checked, and what developers commonly get wrong.
+
+PR Description:
+---
+${prBody}
+---
+
+Produce a structured review brief with the following sections:
+
+**What's being built**
+1-2 sentences. What is the intent of this change?
+
+**What this feature must get right**
+Based on your knowledge of this type of feature — not just what the description says —
+what are the technical requirements that must be correct for this to work properly?
+Think about state management, data flow, API contracts, persistence, concurrency, etc.
+as they apply to this specific feature type.
+
+**Common pitfalls for this type of change**
+What do developers typically get wrong when building something like this?
+What subtle bugs, race conditions, or oversights are common in this domain?
+Be specific to the feature — not generic advice.
+
+**Edge cases to probe**
+List the specific edge cases a reviewer should hunt for in the code.
+Think about empty states, boundary values, failure modes, and unexpected inputs
+that are typical for this kind of feature.
+
+**Red flags to watch for**
+What patterns or shortcuts in the code should immediately raise concern?
+
+Keep the entire brief under 300 words. Be sharp and specific — not generic.
+A reviewer should be able to read this and know exactly what to look for.
+`.trim();
+exports.buildPrompt = buildPrompt;
 
 
 /***/ }),
