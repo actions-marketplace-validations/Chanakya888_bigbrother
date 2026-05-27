@@ -35,11 +35,10 @@ runs:
     - name: Run PR-Agent with context
       uses: The-PR-Agent/pr-agent@main
       env:
-        ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GITHUB_TOKEN: ${{ inputs.github-token }}
-        CONFIG.AI_PROVIDER: anthropic
-        CONFIG.MODEL: anthropic/claude-sonnet-4-5
-        CONFIG.CUSTOM_MODEL_MAX_TOKENS: "200000"
+        ANTHROPIC.KEY: ${{ inputs.anthropic-api-key }}
+        config.model: anthropic/claude-sonnet-4-5
+        config.fallback_models: "[]"
         pr_reviewer.extra_instructions: ${{ steps.summarize.outputs.brief }}
         pr_reviewer.inline_code_comments: "true"
         github_action_config.auto_review: "true"
