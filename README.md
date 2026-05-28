@@ -37,7 +37,7 @@ Get one at [console.anthropic.com](https://console.anthropic.com).
 ## How it works
 
 1. PR is opened — Big brother intel reads the description
-2. Claude generates a focused review brief — what's being built, pitfalls, edge cases, red flags
+2. Claude generates a focused review brief — what's being built, whether the architecture is right for the feature, pitfalls, edge cases, red flags
 3. The brief is posted as a comment on the PR so you can see what context was surfaced
 4. PR-Agent reviews the code using that brief as extra context
 5. You get a review that actually understands what you're trying to do
