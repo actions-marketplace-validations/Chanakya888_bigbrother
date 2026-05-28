@@ -30,8 +30,6 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github-token }}
       run: |
         node ${{ github.action_path }}/dist/index.js
-        echo "ANTHROPIC_API_KEY=${{ inputs.anthropic-api-key }}" >> $GITHUB_ENV
-        echo "GITHUB_TOKEN=${{ inputs.github-token }}" >> $GITHUB_ENV
 
     - name: Run PR-Agent with context
       uses: The-PR-Agent/pr-agent@main

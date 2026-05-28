@@ -15,7 +15,7 @@ name: Big brother intel
 
 on:
   pull_request:
-    types: [opened, reopened]
+    types: [opened, reopened, synchronize]
 
 jobs:
   review:
