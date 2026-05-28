@@ -1,24 +1,21 @@
-# Big Brother Sees 👁️
+# Big brother intel 👁️
 
 Big Brother sees what you're building, not just what changed.
 
-Most AI code reviewers only see the diff. They'll catch null checks and syntax issues but have no idea what you're actually building. Big Brother Sees reads your PR description first, summarizes it with Claude, and passes that context to PR-Agent so your review is about whether your code actually solves the problem, not just whether it compiles.
+Most AI code reviewers only see the diff. They'll catch null checks and syntax issues but have no idea what you're actually building. Big brother intel reads your PR description first, summarizes it with Claude, and passes that context to PR-Agent — so your review is about whether your code actually solves the problem, not just whether it compiles.
 
 ## Setup
 
-**1. Add your Anthropic API key to your repo secrets**
+Two easy steps:
 
-Go to `Settings > Secrets > Actions` and add:
-- `ANTHROPIC_API_KEY` get one at [console.anthropic.com](https://console.anthropic.com)
-
-**2. Create `.github/workflows/bigbrother.yml` in your repo**
+**1. Add this file to your repo at `.github/workflows/bigbrother.yml`**
 
 ```yaml
-name: Big Brother Sees
+name: Big brother intel
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
 
 jobs:
   review:
@@ -33,18 +30,18 @@ jobs:
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-**3. Write a proper PR description**
+**2. Add your Anthropic API key as `ANTHROPIC_API_KEY` in `Settings → Secrets → Actions`**
 
-The more context you give, the smarter the review. Tell it what you're building, what the expected behavior is, and any edge cases you're aware of. No description means no context means a generic review.
-
-## Built on top of
-
-Big Brother Sees uses [PR-Agent](https://github.com/The-PR-Agent/pr-agent) under the hood for the actual code review. We just handle the context layer on top of it.
+Get one at [console.anthropic.com](https://console.anthropic.com).
 
 ## How it works
 
-1. PR is opened or updated
-2. Big Brother Sees reads the PR description
-3. Claude summarizes it into a focused review brief
-4. PR-Agent reviews the code using that brief as context
+1. PR is opened — Big brother intel reads the description
+2. Claude generates a focused review brief — what's being built, pitfalls, edge cases, red flags
+3. The brief is posted as a comment on the PR so you can see what context was surfaced
+4. PR-Agent reviews the code using that brief as extra context
 5. You get a review that actually understands what you're trying to do
+
+## Built on top of
+
+Big brother intel uses [PR-Agent](https://github.com/The-PR-Agent/pr-agent) under the hood for the actual code review. We handle the context layer on top.

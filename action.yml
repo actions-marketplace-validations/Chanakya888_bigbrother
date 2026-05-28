@@ -1,4 +1,5 @@
-name: 'Big-brother'
+name: 'Big brother intel'
+
 description: 'Reads your PR description, summarizes it with Claude, and passes context to PR-Agent for smarter code reviews'
 author: 'Chanakya888'
 
