@@ -31483,7 +31483,7 @@ async function run() {
     const client = new sdk_1.default({ apiKey });
     const response = await client.messages.create({
         model: 'claude-sonnet-4-5',
-        max_tokens: 600,
+        max_tokens: 800,
         messages: [
             {
                 role: 'user',
@@ -31559,6 +31559,9 @@ One sentence. State the intent and user-facing impact, not the technology used.
 ## Must get right
 3 bullets max. The technical requirements that MUST be correct for this feature to work — think state management, data flow, API contracts, persistence, concurrency. Specific to this feature only.
 
+## Architecture
+2–3 bullets. Now that you know what the feature is trying to do — is the chosen approach the right one? Is the structure, data flow, or component design well-suited to this problem, or are there simpler/more robust patterns that would serve it better? Flag any architectural choices that will cause pain as the feature grows.
+
 ## Common pitfalls
 3 bullets max. What developers typically get wrong when building exactly this kind of feature. Name the specific bug or oversight, not the category.
 
@@ -31568,7 +31571,7 @@ One sentence. State the intent and user-facing impact, not the technology used.
 ## Red flags
 2–3 bullets. Patterns or shortcuts that should immediately raise concern in a PR like this.
 
-Total brief: under 250 words. Write like a sharp senior engineer handing off to a peer, not a checklist generator.
+Total brief: under 300 words. Write like a sharp senior engineer handing off to a peer, not a checklist generator.
 `.trim();
 exports.buildPrompt = buildPrompt;
 
